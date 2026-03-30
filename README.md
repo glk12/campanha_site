@@ -1,6 +1,5 @@
 # campanha_site
 
-Aplicação Django para uma campanha eleitoral, começando com o módulo de cadastro de pessoas.
 
 ## Como rodar o projeto
 
