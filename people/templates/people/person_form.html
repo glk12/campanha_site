@@ -1,0 +1,92 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cadastrar pessoa</title>
+    <link rel="stylesheet" href="{% static 'css/output.css' %}">
+</head>
+<body>
+<section class="bg-gray-50 p-3 sm:p-5 antialiased min-h-screen">
+    <div class="mx-auto max-w-screen-xl px-4 lg:px-12">
+        <div class="bg-white relative shadow-md sm:rounded-lg overflow-hidden">
+            <div class="flex items-center justify-between p-4 border-b">
+                <div>
+                    <h1 class="text-xl font-semibold text-gray-900">Adicionar pessoa</h1>
+                    <p class="text-sm text-gray-500">Preencha os dados para cadastrar uma nova pessoa</p>
+                </div>
+                <a href="{% url 'person_list' %}" class="text-sm font-medium text-primary-700 hover:underline">
+                    Voltar para lista
+                </a>
+            </div>
+
+            <form method="post" class="p-4 sm:p-5">
+                {% csrf_token %}
+
+                <div class="grid gap-4 mb-4 sm:grid-cols-2">
+                    <div class="sm:col-span-2">
+                        <label for="{{ form.full_name.id_for_label }}" class="block mb-2 text-sm font-medium text-gray-900">
+                            Nome completo
+                        </label>
+                        {{ form.full_name }}
+                        {% if form.full_name.errors %}
+                            <p class="mt-2 text-sm text-red-600">{{ form.full_name.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+
+                    <div>
+                        <label for="{{ form.phone.id_for_label }}" class="block mb-2 text-sm font-medium text-gray-900">
+                            Telefone
+                        </label>
+                        {{ form.phone }}
+                        {% if form.phone.errors %}
+                            <p class="mt-2 text-sm text-red-600">{{ form.phone.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+
+                    <div>
+                        <label for="{{ form.local.id_for_label }}" class="block mb-2 text-sm font-medium text-gray-900">
+                            Local
+                        </label>
+                        {{ form.local }}
+                        {% if form.local.errors %}
+                            <p class="mt-2 text-sm text-red-600">{{ form.local.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+
+                    <div class="sm:col-span-2">
+                        <label for="{{ form.parent.id_for_label }}" class="block mb-2 text-sm font-medium text-gray-900">
+                            Responsável / vínculo
+                        </label>
+                        {{ form.parent }}
+                        {% if form.parent.errors %}
+                            <p class="mt-2 text-sm text-red-600">{{ form.parent.errors.0 }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+
+                {% if form.non_field_errors %}
+                    <div class="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                        {{ form.non_field_errors }}
+                    </div>
+                {% endif %}
+
+                <div class="flex items-center space-x-4">
+                    <button type="submit" class="text-white inline-flex items-center bg-primary-700 hover:bg-primary-800 focus:ring-4 focus:outline-none focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center">
+                        <svg class="mr-1 -ml-1 w-5 h-5" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
+                            <path fill-rule="evenodd" clip-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z"/>
+                        </svg>
+                        Salvar pessoa
+                    </button>
+
+                    <a href="{% url 'person_list' %}" class="py-2.5 px-5 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-primary-700 focus:z-10 focus:ring-4 focus:ring-gray-200">
+                        Cancelar
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</section>
+</body>
+</html>
