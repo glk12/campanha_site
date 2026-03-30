@@ -12,7 +12,7 @@ def person_create(request):
         form = PersonForm(request.POST)
         if form.is_valid():
             form.save()
-            return redirect("people/person_list.html")
+            return redirect("person_list")
     else:
         form = PersonForm()
 
