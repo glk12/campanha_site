@@ -3,6 +3,13 @@ from django.shortcuts import get_object_or_404, redirect, render
 from .forms import PersonForm
 from .models import Person
 
+
+def home_page(request):
+    return render(request, "people/home.html")
+
+def index(request):
+    return render(request, "people/index.html")
+
 def person_list(request):
     people = Person.objects.all()
     return render(request, "people/person_list.html", {"people": people})
@@ -87,5 +94,3 @@ def person_delete(request, pk):
         return redirect("person_list")
 
     return render(request, "people/person_confirm_delete.html", {"person": person})
-
-
