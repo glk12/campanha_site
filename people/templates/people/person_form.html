@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cadastrar pessoa</title>
+    <title>{% if is_edit %}Editar pessoa{% else %}Cadastrar pessoa{% endif %}</title>
     <link rel="stylesheet" href="{% static 'css/output.css' %}">
 </head>
 <body>
@@ -13,8 +13,16 @@
         <div class="bg-white relative shadow-md sm:rounded-lg overflow-hidden">
             <div class="flex items-center justify-between p-4 border-b">
                 <div>
-                    <h1 class="text-xl font-semibold text-gray-900">Adicionar pessoa</h1>
-                    <p class="text-sm text-gray-500">Preencha os dados para cadastrar uma nova pessoa</p>
+                    <h1 class="text-xl font-semibold text-gray-900">
+                        {% if is_edit %}Editar pessoa{% else %}Adicionar pessoa{% endif %}
+                    </h1>
+                    <p class="text-sm text-gray-500">
+                        {% if is_edit %}
+                            Atualize os dados da pessoa selecionada
+                        {% else %}
+                            Preencha os dados para cadastrar uma nova pessoa
+                        {% endif %}
+                    </p>
                 </div>
                 <a href="{% url 'person_list' %}" class="w-full md:w-auto flex items-center justify-center py-2 px-4 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-primary-700 focus:z-10 focus:ring-4 focus:ring-gray-200">
                     Voltar para lista
@@ -74,10 +82,12 @@
 
                 <div class="flex items-center space-x-4">
                     <button type="submit" class="text-white inline-flex items-center bg-primary-700 hover:bg-primary-800 focus:ring-4 focus:outline-none focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center">
-                        <svg class="mr-1 -ml-1 w-5 h-5" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
-                            <path fill-rule="evenodd" clip-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z"/>
-                        </svg>
-                        Salvar pessoa
+                        {% if not is_edit %}
+                            <svg class="mr-1 -ml-1 w-5 h-5" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
+                                <path fill-rule="evenodd" clip-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z"/>
+                            </svg>
+                        {% endif %}
+                        {% if is_edit %}Salvar alterações{% else %}Salvar pessoa{% endif %}
                     </button>
 
                     <a href="{% url 'person_list' %}" class="py-2.5 px-5 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-primary-700 focus:z-10 focus:ring-4 focus:ring-gray-200">
