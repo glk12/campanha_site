@@ -74,3 +74,28 @@ class PersonCrudTests(TestCase):
 		self.assertEqual(response.status_code, 200)
 		form = response.context["form"]
 		self.assertIn("parent", form.errors)
+
+	def test_report_page_displays_totals(self):
+		Person.objects.create(
+			full_name="Pessoa Sem Responsavel",
+			phone="",
+			local="Zona Sul",
+		)
+
+		response = self.client.get(reverse("person_report"))
+
+		self.assertEqual(response.status_code, 200)
+		self.assertEqual(response.context["total_people"], 3)
+		self.assertEqual(response.context["filtered_total"], 3)
+		self.assertEqual(response.context["total_without_responsible"], 2)
+
+	def test_report_page_filters_by_responsible(self):
+		response = self.client.get(
+			reverse("person_report"),
+			{"responsavel": str(self.parent.pk)},
+		)
+
+		self.assertEqual(response.status_code, 200)
+		people = list(response.context["people"])
+		self.assertEqual(len(people), 1)
+		self.assertEqual(people[0].pk, self.person.pk)
