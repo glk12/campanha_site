@@ -1,7 +1,30 @@
 # campanha_site
 
 
-## Como rodar o projeto
+## Rodando com Docker
+
+### 1. Build da imagem e subida do container
+
+```bash
+docker compose up --build
+```
+
+### 2. Acessar a aplicação
+
+- `http://127.0.0.1:8000/people/`
+
+### 3. Derrubar os containers
+
+```bash
+docker compose down
+```
+
+Observações:
+
+- O entrypoint executa `python manage.py migrate --noinput` automaticamente ao subir.
+- O CSS do Tailwind é gerado no build da imagem via `npm run build-css`.
+
+## Como rodar o projeto manualmente
 
 ### 1. Criar e ativar o ambiente virtual
 

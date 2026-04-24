@@ -1,0 +1,8 @@
+services:
+  web:
+    build:
+      context: .
+      target: app
+    container_name: campanha_site_web
+    ports:
+      - "8000:8000"
