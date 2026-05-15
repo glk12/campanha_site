@@ -1,29 +1,82 @@
-{% load static %}
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Página Inicial - Campanha</title>
-    <link href="{% static 'css/output.css' %}" rel="stylesheet">
-</head>
-<body class="bg-gray-100 flex flex-col items-center justify-center min-h-screen">
+{% extends "people/base.html" %}
 
-    <div class="bg-white p-10 rounded-xl shadow-lg w-full max-w-md text-center">
-        <h1 class="text-3xl font-bold text-gray-800 mb-4">Sistema de Campanha</h1>
-        <p class="text-gray-600 mb-8">Escolha uma das opções abaixo para acessar as funcionalidades do sistema.</p>
+{% block title %}Painel Inicial{% endblock %}
+{% block page_title %}Painel Inicial da Campanha{% endblock %}
+{% block page_subtitle %}Tudo o que a equipe precisa para cadastrar apoiadores, validar dados e decidir onde atuar primeiro.{% endblock %}
 
-        <div class="flex flex-col space-y-4">
-            <!-- Link para a Tela de Cadastro -->
-            <a href="{% url 'person_create' %}" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-md shadow transition duration-200">
-                Tela de Cadastro
-            </a>
+{% block content %}
+<section class="grid gap-5 lg:grid-cols-[1.25fr_0.75fr]">
+    <div class="app-card border border-slate-200 bg-white/95 p-6 sm:p-8">
+        <div class="max-w-2xl">
+            <p class="text-xs font-semibold uppercase tracking-[0.35em] text-blue-700">Painel da Campanha</p>
+            <h2 class="mt-3 text-3xl font-semibold tracking-tight text-slate-950 sm:text-4xl">Centralize o trabalho da equipe e acompanhe a base com clareza.</h2>
+            <p class="mt-4 text-base leading-7 text-slate-600">
+                Use esta tela como ponto de entrada do sistema. Acesse o cadastro, acompanhe a base e consulte o relatorio em um layout simples, leve e preparado para uso no celular.
+            </p>
+        </div>
 
-            <!-- Link para a Tela de Relatório -->
-            <a href="{% url 'person_report' %}" class="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded-md shadow transition duration-200">
-                Tela de Relatório
-            </a>
+        <div class="mt-8 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+            <div class="rounded-3xl bg-slate-950 px-5 py-4 text-white shadow-sm">
+                <p class="text-sm text-slate-300">Base visivel</p>
+                <p class="mt-2 text-3xl font-semibold">{{ headline_total }}</p>
+            </div>
+            <div class="rounded-3xl bg-blue-700 px-5 py-4 text-white shadow-sm">
+                <p class="text-sm text-blue-100">Registros validados</p>
+                <p class="mt-2 text-3xl font-semibold">{{ headline_validated }}</p>
+            </div>
+            <div class="rounded-3xl border border-emerald-200 bg-emerald-50 px-5 py-4 text-emerald-950 shadow-sm">
+                <p class="text-sm text-emerald-700">Eleitores aptos</p>
+                <p class="mt-2 text-3xl font-semibold">{{ headline_apto }}</p>
+            </div>
+            <div class="rounded-3xl border border-slate-200 bg-slate-50 px-5 py-4 text-slate-950 shadow-sm">
+                <p class="text-sm text-slate-500">Consentimentos registrados</p>
+                <p class="mt-2 text-3xl font-semibold">{{ headline_consent }}</p>
+            </div>
         </div>
     </div>
-</body>
-</html>
+
+    <div class="app-card border border-slate-900 bg-slate-900 p-6 text-white sm:p-8">
+        <p class="text-xs font-semibold uppercase tracking-[0.35em] text-blue-200">Fluxo sugerido</p>
+        <ol class="mt-6 space-y-4 text-sm leading-6 text-slate-300">
+            <li><span class="font-semibold text-white">1.</span> Cadastre um novo apoiador com os dados principais.</li>
+            <li><span class="font-semibold text-white">2.</span> Organize os responsaveis para manter a base estruturada.</li>
+            <li><span class="font-semibold text-white">3.</span> Consulte a listagem para revisar e atualizar registros.</li>
+            <li><span class="font-semibold text-white">4.</span> Use o relatorio para acompanhar os totais e filtros da campanha.</li>
+        </ol>
+
+        <div class="mt-6 rounded-3xl border border-white/10 bg-white/5 p-4 text-sm text-slate-300">
+            <p class="font-semibold text-white">Uso recomendado</p>
+            <p class="mt-2">Prefira usar a home como central de navegacao. Os cards abaixo levam direto para cada area principal do sistema.</p>
+        </div>
+    </div>
+</section>
+
+<section class="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+    {% if can_create_people %}
+        <a href="{% url 'person_create' %}" class="app-card group border border-slate-200 bg-white/95 p-6 transition hover:-translate-y-0.5 hover:border-blue-300">
+            <p class="text-sm font-semibold uppercase tracking-[0.25em] text-blue-700">Cadastro</p>
+            <h3 class="mt-3 text-2xl font-semibold text-slate-950">Novo apoiador</h3>
+            <p class="mt-2 text-sm leading-6 text-slate-600">Abra o formulario principal para inserir dados da base com conforto no celular.</p>
+            <span class="mt-6 inline-flex rounded-full bg-blue-50 px-3 py-1 text-sm font-medium text-blue-700">Abrir cadastro</span>
+        </a>
+    {% endif %}
+
+    {% if can_manage_people %}
+        <a href="{% url 'person_list' %}" class="app-card group border border-slate-200 bg-white/95 p-6 transition hover:-translate-y-0.5 hover:border-slate-300">
+            <p class="text-sm font-semibold uppercase tracking-[0.25em] text-slate-600">Listagem</p>
+            <h3 class="mt-3 text-2xl font-semibold text-slate-950">Pessoas cadastradas</h3>
+            <p class="mt-2 text-sm leading-6 text-slate-600">Revise os dados da campanha em uma visualizacao de CRM simples e organizada.</p>
+            <span class="mt-6 inline-flex rounded-full bg-slate-100 px-3 py-1 text-sm font-medium text-slate-700">Abrir listagem</span>
+        </a>
+    {% endif %}
+
+    {% if can_view_reports %}
+        <a href="{% url 'person_report' %}" class="app-card group border border-slate-200 bg-white/95 p-6 transition hover:-translate-y-0.5 hover:border-emerald-300">
+            <p class="text-sm font-semibold uppercase tracking-[0.25em] text-emerald-700">Relatorio</p>
+            <h3 class="mt-3 text-2xl font-semibold text-slate-950">Metricas da campanha</h3>
+            <p class="mt-2 text-sm leading-6 text-slate-600">Acompanhe os cards de resumo e use os filtros para ler a base com mais rapidez.</p>
+            <span class="mt-6 inline-flex rounded-full bg-emerald-50 px-3 py-1 text-sm font-medium text-emerald-700">Abrir relatorio</span>
+        </a>
+    {% endif %}
+</section>
+{% endblock %}

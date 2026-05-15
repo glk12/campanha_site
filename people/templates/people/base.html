@@ -1,0 +1,87 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Painel de Campanha{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'css/output.css' %}">
+    <style>
+        .app-surface {
+            background: linear-gradient(180deg, #f8fafc 0%, #eff6ff 100%);
+        }
+
+        .app-card {
+            border-radius: 1.5rem;
+            box-shadow: 0 10px 30px rgba(15, 23, 42, 0.06);
+        }
+
+        .app-form input[type="text"],
+        .app-form input[type="password"],
+        .app-form input[type="email"],
+        .app-form input[type="number"],
+        .app-form select,
+        .app-form textarea {
+            width: 100%;
+            border-radius: 1rem;
+            border: 1px solid rgb(203 213 225);
+            background: white;
+            padding: 0.875rem 1rem;
+            font-size: 0.95rem;
+            line-height: 1.4;
+            color: rgb(15 23 42);
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .app-form input:focus,
+        .app-form select:focus,
+        .app-form textarea:focus {
+            outline: none;
+            border-color: rgb(37 99 235);
+            box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.12);
+        }
+    </style>
+</head>
+<body class="app-surface min-h-screen text-slate-900">
+    <header class="sticky top-0 z-20 border-b border-slate-200/80 bg-white/90 backdrop-blur">
+        <div class="mx-auto flex max-w-7xl flex-col gap-4 px-4 py-4 sm:px-6 lg:flex-row lg:items-center lg:justify-between">
+            <div>
+                <a href="{% url 'index' %}" class="text-xs font-semibold uppercase tracking-[0.35em] text-blue-700">Campanha em Campo</a>
+                <h1 class="mt-1 text-2xl font-semibold text-slate-950">{% block page_title %}Gestao de apoiadores{% endblock %}</h1>
+                <p class="mt-1 max-w-2xl text-sm text-slate-600">{% block page_subtitle %}Organize base, acompanhe validacoes e priorize territorios.{% endblock %}</p>
+            </div>
+
+            <div class="flex flex-col items-start gap-3 sm:flex-row sm:items-center">
+                <div class="rounded-2xl border border-blue-100 bg-blue-50 px-4 py-2 text-sm text-blue-900">
+                    <span class="font-semibold">{{ request.user.username }}</span>
+                    <span class="text-blue-700">· {{ profile.get_access_level_display }}</span>
+                </div>
+
+                <nav class="flex flex-wrap gap-2">
+                    <a href="{% url 'index' %}" class="rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:border-blue-200 hover:text-blue-700">Inicio</a>
+                    {% if can_create_people %}
+                        <a href="{% url 'person_create' %}" class="rounded-full border border-blue-700 bg-blue-700 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-blue-800">Cadastrar</a>
+                    {% endif %}
+                    {% if can_manage_people %}
+                        <a href="{% url 'person_list' %}" class="rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:border-blue-200 hover:text-blue-700">Base</a>
+                    {% endif %}
+                    {% if can_view_reports %}
+                        <a href="{% url 'person_report' %}" class="rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:border-blue-200 hover:text-blue-700">Relatorio</a>
+                    {% endif %}
+                    {% if request.user.is_staff %}
+                        <a href="/admin/" class="rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:border-blue-200 hover:text-blue-700">Admin</a>
+                    {% endif %}
+                    <form method="post" action="{% url 'logout' %}">
+                        {% csrf_token %}
+                        <button type="submit" class="rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:border-rose-200 hover:text-rose-700">Sair</button>
+                    </form>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <main class="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+        {% block content %}{% endblock %}
+    </main>
+</body>
+</html>

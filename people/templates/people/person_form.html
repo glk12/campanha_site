@@ -1,102 +1,130 @@
-{% load static %}
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% if is_edit %}Editar pessoa{% else %}Cadastrar pessoa{% endif %}</title>
-    <link rel="stylesheet" href="{% static 'css/output.css' %}">
-</head>
-<body>
-<section class="bg-gray-50 p-3 sm:p-5 antialiased min-h-screen">
-    <div class="mx-auto max-w-screen-xl px-4 lg:px-12">
-        <div class="bg-white relative shadow-md sm:rounded-lg overflow-hidden">
-            <div class="flex items-center justify-between p-4 border-b">
-                <div>
-                    <h1 class="text-xl font-semibold text-gray-900">
-                        {% if is_edit %}Editar pessoa{% else %}Adicionar pessoa{% endif %}
-                    </h1>
-                    <p class="text-sm text-gray-500">
-                        {% if is_edit %}
-                            Atualize os dados da pessoa selecionada
-                        {% else %}
-                            Preencha os dados para cadastrar uma nova pessoa
-                        {% endif %}
-                    </p>
-                </div>
-                <a href="{% url 'person_list' %}" class="w-full md:w-auto flex items-center justify-center py-2 px-4 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-primary-700 focus:z-10 focus:ring-4 focus:ring-gray-200">
-                    Voltar para lista
-                </a>
+{% extends "people/base.html" %}
+
+{% block title %}{% if is_edit %}Editar apoiador{% else %}Novo apoiador{% endif %}{% endblock %}
+{% block page_title %}{% if is_edit %}Atualizar apoiador{% else %}Cadastrar apoiador{% endif %}{% endblock %}
+{% block page_subtitle %}Colete os dados essenciais da campanha com aviso juridico, consentimento e validacao eleitoral.{% endblock %}
+
+{% block content %}
+<section class="grid gap-6 xl:grid-cols-[1.3fr_0.7fr]">
+    <div class="app-card border border-slate-200 bg-white/95 p-6 sm:p-8">
+        <div class="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+                <h2 class="text-lg font-semibold text-slate-950">{% if is_edit %}Editar apoiador{% else %}Novo apoiador{% endif %}</h2>
+                <p class="text-sm text-slate-500">Preenchimento pensado para uso rapido em celular.</p>
+            </div>
+            <a href="{% if can_manage_people %}{% url 'person_list' %}{% else %}{% url 'index' %}{% endif %}" class="inline-flex items-center justify-center rounded-full border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-700 hover:border-slate-300">Voltar</a>
+        </div>
+
+        <form method="post" class="app-form space-y-6">
+            {% csrf_token %}
+
+            <div class="rounded-3xl border border-blue-100 bg-blue-50 p-5 text-sm leading-6 text-blue-950">
+                <p class="font-semibold">Orientacao rapida</p>
+                <p class="mt-2">Preencha os dados principais do apoiador, revise as informacoes sensiveis e confirme o consentimento antes de salvar.</p>
             </div>
 
-            <form method="post" class="p-4 sm:p-5">
-                {% csrf_token %}
+            {% if form.non_field_errors %}
+                <div class="rounded-3xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+                    {{ form.non_field_errors }}
+                </div>
+            {% endif %}
 
-                <div class="grid gap-4 mb-4 sm:grid-cols-2">
-                    <div class="sm:col-span-2">
-                        <label for="{{ form.full_name.id_for_label }}" class="block mb-2 text-sm font-medium text-gray-900">
-                            Nome completo
-                        </label>
-                        {{ form.full_name }}
-                        {% if form.full_name.errors %}
-                            <p class="mt-2 text-sm text-red-600">{{ form.full_name.errors.0 }}</p>
-                        {% endif %}
-                    </div>
-
-                    <div>
-                        <label for="{{ form.phone.id_for_label }}" class="block mb-2 text-sm font-medium text-gray-900">
-                            Telefone
-                        </label>
-                        {{ form.phone }}
-                        {% if form.phone.errors %}
-                            <p class="mt-2 text-sm text-red-600">{{ form.phone.errors.0 }}</p>
-                        {% endif %}
-                    </div>
-
-                    <div>
-                        <label for="{{ form.local.id_for_label }}" class="block mb-2 text-sm font-medium text-gray-900">
-                            Local
-                        </label>
-                        {{ form.local }}
-                        {% if form.local.errors %}
-                            <p class="mt-2 text-sm text-red-600">{{ form.local.errors.0 }}</p>
-                        {% endif %}
-                    </div>
-
-                    <div class="sm:col-span-2">
-                        <label for="{{ form.parent.id_for_label }}" class="block mb-2 text-sm font-medium text-gray-900">
-                            Responsável / Vínculo
-                        </label>
-                        {{ form.parent }}
-                        {% if form.parent.errors %}
-                            <p class="mt-2 text-sm text-red-600">{{ form.parent.errors.0 }}</p>
-                        {% endif %}
-                    </div>
+            <div class="grid gap-5 md:grid-cols-2">
+                <div class="md:col-span-2">
+                    <label for="{{ form.full_name.id_for_label }}" class="mb-2 block text-sm font-medium text-slate-800">Nome completo</label>
+                    {{ form.full_name }}
+                    {% if form.full_name.errors %}<p class="mt-2 text-sm text-rose-600">{{ form.full_name.errors.0 }}</p>{% endif %}
                 </div>
 
-                {% if form.non_field_errors %}
-                    <div class="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-                        {{ form.non_field_errors }}
-                    </div>
-                {% endif %}
-
-                <div class="flex items-center space-x-4">
-                    <button type="submit" class="text-white inline-flex items-center bg-primary-700 hover:bg-primary-800 focus:ring-4 focus:outline-none focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center">
-                        {% if not is_edit %}
-                            <svg class="mr-1 -ml-1 w-5 h-5" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
-                                <path fill-rule="evenodd" clip-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z"/>
-                            </svg>
-                        {% endif %}
-                        {% if is_edit %}Salvar alterações{% else %}Salvar pessoa{% endif %}
-                    </button>
-
-                    <a href="{% url 'person_list' %}" class="py-2.5 px-5 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-primary-700 focus:z-10 focus:ring-4 focus:ring-gray-200">
-                        Cancelar
-                    </a>
+                <div>
+                    <label for="{{ form.cpf.id_for_label }}" class="mb-2 block text-sm font-medium text-slate-800">CPF</label>
+                    {{ form.cpf }}
+                    {% if form.cpf.errors %}<p class="mt-2 text-sm text-rose-600">{{ form.cpf.errors.0 }}</p>{% endif %}
                 </div>
-            </form>
-        </div>
+
+                <div>
+                    <label for="{{ form.phone.id_for_label }}" class="mb-2 block text-sm font-medium text-slate-800">Telefone</label>
+                    {{ form.phone }}
+                    {% if form.phone.errors %}<p class="mt-2 text-sm text-rose-600">{{ form.phone.errors.0 }}</p>{% endif %}
+                </div>
+
+                <div>
+                    <label for="{{ form.local.id_for_label }}" class="mb-2 block text-sm font-medium text-slate-800">Base territorial</label>
+                    {{ form.local }}
+                    {% if form.local.errors %}<p class="mt-2 text-sm text-rose-600">{{ form.local.errors.0 }}</p>{% endif %}
+                </div>
+
+                <div>
+                    <label for="{{ form.voting_city.id_for_label }}" class="mb-2 block text-sm font-medium text-slate-800">Municipio de votacao</label>
+                    {{ form.voting_city }}
+                    {% if form.voting_city.errors %}<p class="mt-2 text-sm text-rose-600">{{ form.voting_city.errors.0 }}</p>{% endif %}
+                </div>
+
+                <div>
+                    <label for="{{ form.electoral_zone.id_for_label }}" class="mb-2 block text-sm font-medium text-slate-800">Zona eleitoral</label>
+                    {{ form.electoral_zone }}
+                    {% if form.electoral_zone.errors %}<p class="mt-2 text-sm text-rose-600">{{ form.electoral_zone.errors.0 }}</p>{% endif %}
+                </div>
+
+                <div>
+                    <label for="{{ form.electoral_section.id_for_label }}" class="mb-2 block text-sm font-medium text-slate-800">Secao eleitoral</label>
+                    {{ form.electoral_section }}
+                    {% if form.electoral_section.errors %}<p class="mt-2 text-sm text-rose-600">{{ form.electoral_section.errors.0 }}</p>{% endif %}
+                </div>
+
+                <div>
+                    <label for="{{ form.voter_status.id_for_label }}" class="mb-2 block text-sm font-medium text-slate-800">Status do titulo</label>
+                    {{ form.voter_status }}
+                    {% if form.voter_status.errors %}<p class="mt-2 text-sm text-rose-600">{{ form.voter_status.errors.0 }}</p>{% endif %}
+                </div>
+
+                <div class="md:col-span-2">
+                    <label for="{{ form.parent.id_for_label }}" class="mb-2 block text-sm font-medium text-slate-800">Responsavel pela base</label>
+                    {{ form.parent }}
+                    {% if form.parent.errors %}<p class="mt-2 text-sm text-rose-600">{{ form.parent.errors.0 }}</p>{% endif %}
+                </div>
+            </div>
+
+            <div class="grid gap-4 rounded-3xl border border-slate-200 bg-slate-50 p-5">
+                <label class="flex items-start gap-3 text-sm text-slate-700">
+                    {{ form.data_consent }}
+                    <span>Confirmo que o apoiador autorizou a coleta do CPF e dos dados eleitorais para uso na campanha.</span>
+                </label>
+                {% if form.data_consent.errors %}<p class="text-sm text-rose-600">{{ form.data_consent.errors.0 }}</p>{% endif %}
+
+                <label class="flex items-start gap-3 text-sm text-slate-700">
+                    {{ form.run_validation }}
+                    <span>Executar validacao eleitoral simulada ao salvar, preenchendo status, zona, secao e municipio.</span>
+                </label>
+                {% if form.run_validation.errors %}<p class="text-sm text-rose-600">{{ form.run_validation.errors.0 }}</p>{% endif %}
+            </div>
+
+            <div class="flex flex-col gap-3 sm:flex-row">
+                <button type="submit" class="rounded-full bg-blue-700 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-blue-700/20 hover:bg-blue-800">
+                    {% if is_edit %}Salvar alteracoes{% else %}Salvar apoiador{% endif %}
+                </button>
+                <a href="{% if can_manage_people %}{% url 'person_list' %}{% else %}{% url 'index' %}{% endif %}" class="rounded-full border border-slate-200 bg-white px-6 py-3 text-sm font-semibold text-slate-700 hover:border-slate-300">Cancelar</a>
+            </div>
+        </form>
     </div>
+
+    <aside class="space-y-4">
+        <div class="app-card border border-slate-900 bg-slate-950 p-6 text-white">
+            <p class="text-xs font-semibold uppercase tracking-[0.35em] text-blue-200">Como preencher</p>
+            <ul class="mt-4 space-y-3 text-sm leading-6 text-slate-300">
+                <li>Preencha primeiro nome, CPF e telefone.</li>
+                <li>Use os campos territoriais para facilitar filtros posteriores.</li>
+                <li>Marque o consentimento antes de concluir o cadastro.</li>
+                <li>Associe um responsavel quando o registro fizer parte de uma base hierarquica.</li>
+            </ul>
+        </div>
+
+        <div class="app-card border border-slate-200 bg-white/95 p-6">
+            <p class="text-sm font-semibold text-slate-900">Apoio visual ao preenchimento</p>
+            <p class="mt-2 text-sm leading-6 text-slate-600">
+                Os campos foram distribuidos em blocos simples para reduzir erro de digitacao, principalmente em telas menores.
+            </p>
+        </div>
+    </aside>
 </section>
-</body>
-</html>
+{% endblock %}

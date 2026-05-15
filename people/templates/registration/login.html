@@ -1,0 +1,50 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Entrar na Campanha</title>
+    <link rel="stylesheet" href="{% static 'css/output.css' %}">
+</head>
+<body class="min-h-screen bg-[linear-gradient(135deg,_#022c22,_#065f46_40%,_#f8fafc_40%,_#f8fafc)]">
+    <main class="mx-auto grid min-h-screen max-w-7xl items-center gap-8 px-4 py-10 lg:grid-cols-[1.1fr_0.9fr] lg:px-8">
+        <section class="text-white">
+            <p class="text-xs font-semibold uppercase tracking-[0.4em] text-emerald-200">Gestao eleitoral</p>
+            <h1 class="mt-4 max-w-2xl text-5xl font-semibold leading-tight">Acesse a operacao da campanha com leitura territorial e fluxo de campo em um so lugar.</h1>
+            <p class="mt-6 max-w-xl text-base leading-8 text-emerald-50/80">Cadastre apoiadores, registre consentimento, acompanhe situacao eleitoral, organize responsaveis e visualize zonas e secoes prioritarias para a rua.</p>
+        </section>
+
+        <section class="rounded-[2rem] border border-white/30 bg-white/90 p-8 shadow-2xl shadow-black/10 backdrop-blur">
+            <p class="text-sm font-semibold uppercase tracking-[0.3em] text-emerald-700">Entrar</p>
+            <h2 class="mt-3 text-3xl font-semibold text-slate-950">Painel de campanha</h2>
+            <p class="mt-2 text-sm leading-6 text-slate-600">Use seu usuario e senha. O acesso a dados, relatorios e dashboard depende do perfil configurado no admin.</p>
+
+            <form method="post" class="mt-8 space-y-5">
+                {% csrf_token %}
+                <div>
+                    <label for="{{ form.username.id_for_label }}" class="mb-2 block text-sm font-medium text-slate-800">Usuario</label>
+                    <input type="text" name="{{ form.username.html_name }}" id="{{ form.username.id_for_label }}" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100" required>
+                </div>
+                <div>
+                    <label for="{{ form.password.id_for_label }}" class="mb-2 block text-sm font-medium text-slate-800">Senha</label>
+                    <input type="password" name="{{ form.password.html_name }}" id="{{ form.password.id_for_label }}" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100" required>
+                </div>
+
+                {% if form.errors %}
+                    <div class="rounded-3xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+                        Usuario ou senha invalidos.
+                    </div>
+                {% endif %}
+
+                <button type="submit" class="w-full rounded-full bg-slate-950 px-5 py-3 text-sm font-semibold text-white hover:bg-slate-800">Entrar no sistema</button>
+            </form>
+
+            <div class="mt-6 rounded-3xl border border-amber-200 bg-amber-50 p-4 text-sm leading-6 text-amber-950">
+                <p class="font-semibold">Importante</p>
+                <p class="mt-1">CPF e dados eleitorais sao sensiveis. O sistema registra consentimento e sinaliza quando a validacao e simulada, nao oficial.</p>
+            </div>
+        </section>
+    </main>
+</body>
+</html>

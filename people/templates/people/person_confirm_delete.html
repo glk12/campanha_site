@@ -1,33 +1,29 @@
-{% load static %}
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Confirmar exclusão</title>
-    <link rel="stylesheet" href="{% static 'css/output.css' %}">
-</head>
-<body>
-<section class="bg-gray-50 p-3 sm:p-5 antialiased min-h-screen">
-    <div class="mx-auto max-w-screen-md px-4 lg:px-12">
-        <div class="bg-white relative shadow-md sm:rounded-lg overflow-hidden p-6 sm:p-8">
-            <h1 class="text-xl font-semibold text-gray-900">Confirmar exclusão</h1>
-            <p class="mt-2 text-sm text-gray-600">
-                Tem certeza que deseja excluir <span class="font-semibold text-gray-900">{{ person.full_name }}</span>?
-            </p>
-            <p class="mt-1 text-sm text-gray-500">Esta ação não pode ser desfeita.</p>
+{% extends "people/base.html" %}
 
-            <form method="post" class="mt-6 flex items-center gap-3">
-                {% csrf_token %}
-                <button type="submit" class="inline-flex items-center rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-4 focus:ring-red-300">
-                    Excluir
-                </button>
-                <a href="{% url 'person_list' %}" class="inline-flex items-center rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-900 hover:bg-gray-100 focus:outline-none focus:ring-4 focus:ring-gray-200">
-                    Cancelar
-                </a>
-            </form>
+{% block title %}Excluir apoiador{% endblock %}
+{% block page_title %}Excluir apoiador{% endblock %}
+{% block page_subtitle %}Revise os dados antes de remover o registro da base da campanha.{% endblock %}
+
+{% block content %}
+<section class="mx-auto max-w-2xl">
+    <div class="app-card border border-slate-200 bg-white/95 p-6 sm:p-8">
+        <div class="rounded-3xl border border-rose-200 bg-rose-50 p-5">
+            <p class="text-sm font-semibold text-rose-800">Acao destrutiva</p>
+            <h2 class="mt-2 text-2xl font-semibold text-slate-950">{{ person.full_name }}</h2>
+            <p class="mt-2 text-sm leading-6 text-slate-600">CPF {{ person.cpf }} · {{ person.local }} · Zona {{ person.electoral_zone|default:"-" }} / Secao {{ person.electoral_section|default:"-" }}</p>
+            <p class="mt-4 text-sm text-rose-700">Esta exclusao e permanente e pode afetar a leitura da base e dos indicadores exibidos no relatorio.</p>
         </div>
+
+        <div class="mt-6 rounded-3xl border border-slate-200 bg-slate-50 p-5 text-sm text-slate-600">
+            <p class="font-medium text-slate-900">Antes de excluir</p>
+            <p class="mt-2">Confirme se este registro realmente nao sera mais usado. Se a intencao for apenas corrigir dados, prefira voltar e editar o apoiador.</p>
+        </div>
+
+        <form method="post" class="mt-6 flex flex-col gap-3 sm:flex-row">
+            {% csrf_token %}
+            <a href="{% url 'person_list' %}" class="inline-flex items-center justify-center rounded-full border border-slate-200 bg-white px-6 py-3 text-sm font-semibold text-slate-700 hover:border-slate-300">Cancelar</a>
+            <button type="submit" class="rounded-full bg-rose-600 px-6 py-3 text-sm font-semibold text-white hover:bg-rose-700">Excluir definitivamente</button>
+        </form>
     </div>
 </section>
-</body>
-</html>
+{% endblock %}

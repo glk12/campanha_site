@@ -1,98 +1,239 @@
-{% load static %}
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Relatório de Pessoas</title>
-    <link rel="stylesheet" href="{% static 'css/output.css' %}">
-</head>
-<body>
-<section class="bg-gray-50 p-3 sm:p-5 antialiased min-h-screen">
-    <div class="mx-auto max-w-screen-xl px-4 lg:px-12 space-y-4">
-        <div class="bg-white shadow-md sm:rounded-lg p-4 sm:p-6">
-            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+{% extends "people/base.html" %}
+
+{% block title %}Dashboard de Campanha{% endblock %}
+{% block page_title %}Dashboard de Campanha{% endblock %}
+{% block page_subtitle %}Conecte base, situacao eleitoral, concentracao territorial e historico de votacao em um painel unico.{% endblock %}
+
+{% block content %}
+<section class="space-y-6">
+    <div class="grid gap-4 xl:grid-cols-[1.15fr_0.85fr]">
+        <div class="app-card border border-slate-900 bg-slate-950 p-6 text-white sm:p-8">
+            <p class="text-xs font-semibold uppercase tracking-[0.35em] text-blue-200">Visao geral</p>
+            <h2 class="mt-3 text-3xl font-semibold">Resumo rapido da campanha para orientar a proxima acao.</h2>
+            <p class="mt-4 max-w-2xl text-sm leading-7 text-slate-300">
+                Os cards e filtros desta tela ajudam a enxergar a base com mais rapidez. A prioridade aqui e leitura simples: totais no topo, filtros logo abaixo e resultados organizados em blocos.
+            </p>
+        </div>
+
+        <div class="app-card border border-slate-200 bg-white/95 p-6 sm:p-8">
+            <p class="text-xs font-semibold uppercase tracking-[0.35em] text-emerald-700">Leitura atual</p>
+            <h2 class="mt-3 text-2xl font-semibold text-slate-950">Filtro aplicado: {{ filter_data.current_filter_label }}</h2>
+            <p class="mt-4 text-sm leading-7 text-slate-600">Use os filtros abaixo para trocar o recorte da base sem sair do relatorio. Os indicadores e a tabela acompanham o contexto atual da consulta.</p>
+        </div>
+    </div>
+
+    <div class="app-card border border-slate-200 bg-white/95 p-6">
+        <div class="mb-5">
+            <h2 class="text-lg font-semibold text-slate-950">Filtros do relatorio</h2>
+            <p class="text-sm text-slate-500">Refine a visualizacao por busca, status, zona e responsavel.</p>
+        </div>
+
+        <form method="get" class="grid gap-4 md:grid-cols-2 xl:grid-cols-[1.2fr_0.7fr_0.7fr_0.7fr_auto]">
+            <div>
+                <label for="q" class="mb-2 block text-sm font-medium text-slate-700">Busca</label>
+                <input type="text" id="q" name="q" value="{{ filter_data.q }}" placeholder="Nome, CPF, telefone, local ou cidade" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100">
+            </div>
+            <div>
+                <label for="status" class="mb-2 block text-sm font-medium text-slate-700">Status</label>
+                <select id="status" name="status" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100">
+                    <option value="">Todos</option>
+                    {% for value, label in status_options %}
+                        <option value="{{ value }}" {% if filter_data.status == value %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label for="zona" class="mb-2 block text-sm font-medium text-slate-700">Zona</label>
+                <select id="zona" name="zona" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100">
+                    <option value="">Todas</option>
+                    {% for zone in zone_options %}
+                        <option value="{{ zone }}" {% if filter_data.zona == zone %}selected{% endif %}>Zona {{ zone }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label for="responsavel" class="mb-2 block text-sm font-medium text-slate-700">Responsavel</label>
+                <select id="responsavel" name="responsavel" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100">
+                    <option value="">Todos</option>
+                    <option value="none" {% if filter_data.responsavel == 'none' %}selected{% endif %}>Sem responsavel</option>
+                    {% for responsible in responsible_options %}
+                        <option value="{{ responsible.id }}" {% if filter_data.responsavel == responsible.id|stringformat:'s' %}selected{% endif %}>
+                            {{ responsible.full_name }} ({{ responsible.total_records }})
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="flex items-end gap-3">
+                <button type="submit" class="rounded-full bg-slate-950 px-5 py-3 text-sm font-semibold text-white hover:bg-slate-800">Aplicar</button>
+                <a href="{% url 'person_report' %}" class="rounded-full border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-700">Limpar</a>
+            </div>
+        </form>
+    </div>
+
+    <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <div class="rounded-3xl bg-slate-950 px-5 py-4 text-white shadow-sm">
+            <p class="text-sm text-slate-300">Base total visivel</p>
+            <p class="mt-2 text-3xl font-semibold">{{ summary_total }}</p>
+        </div>
+        <div class="rounded-3xl border border-slate-200 bg-white px-5 py-4 shadow-sm">
+            <p class="text-sm text-slate-500">Exibidos com filtro</p>
+            <p class="mt-2 text-3xl font-semibold text-slate-950">{{ summary_filtered_total }}</p>
+        </div>
+        <div class="rounded-3xl bg-blue-700 px-5 py-4 text-white shadow-sm">
+            <p class="text-sm text-emerald-100">Eleitores aptos</p>
+            <p class="mt-2 text-3xl font-semibold">{{ summary_apto }}</p>
+        </div>
+        <div class="rounded-3xl border border-rose-200 bg-rose-50 px-5 py-4 text-rose-800 shadow-sm">
+            <p class="text-sm text-rose-700">Nao aptos</p>
+            <p class="mt-2 text-3xl font-semibold">{{ summary_not_apto }}</p>
+        </div>
+        <div class="rounded-3xl border border-amber-200 bg-amber-50 px-5 py-4 text-amber-900 shadow-sm">
+            <p class="text-sm text-amber-700">Pendentes</p>
+            <p class="mt-2 text-3xl font-semibold">{{ summary_pending }}</p>
+        </div>
+        <div class="rounded-3xl border border-slate-200 bg-white px-5 py-4 shadow-sm">
+            <p class="text-sm text-slate-500">Sem responsavel</p>
+            <p class="mt-2 text-3xl font-semibold text-slate-950">{{ summary_without_responsible }}</p>
+        </div>
+        <div class="rounded-3xl border border-slate-200 bg-white px-5 py-4 shadow-sm">
+            <p class="text-sm text-slate-500">Consentimento registrado</p>
+            <p class="mt-2 text-3xl font-semibold text-slate-950">{{ summary_with_consent }}</p>
+        </div>
+        <div class="rounded-3xl border border-slate-200 bg-white px-5 py-4 shadow-sm">
+            <p class="text-sm text-slate-500">Validacoes registradas</p>
+            <p class="mt-2 text-3xl font-semibold text-slate-950">{{ summary_validated }}</p>
+        </div>
+    </div>
+
+    <div class="grid gap-6 xl:grid-cols-[0.95fr_1.05fr]">
+        <div class="app-card border border-slate-200 bg-white/95 p-6">
+            <div class="flex items-center justify-between">
                 <div>
-                    <h1 class="text-xl font-semibold text-gray-900">Relatório de pessoas cadastradas</h1>
-                    <p class="text-sm text-gray-500">Filtre os registros por responsável e acompanhe os totais</p>
+                    <p class="text-xs font-semibold uppercase tracking-[0.35em] text-emerald-700">Distribuicao</p>
+                    <h3 class="mt-2 text-2xl font-semibold text-slate-950">Base por zona</h3>
                 </div>
-                <a href="{% url 'person_list' %}" class="inline-flex items-center justify-center py-2 px-4 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-primary-700 focus:z-10 focus:ring-4 focus:ring-gray-200">
-                    Voltar para lista
-                </a>
+                <span class="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">Atual: {{ filter_data.current_filter_label }}</span>
+            </div>
+
+            <div class="mt-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+                {% for zone in zone_cards %}
+                    <a href="?zona={{ zone.electoral_zone }}" class="rounded-3xl border border-emerald-100 p-4 transition hover:-translate-y-0.5 hover:border-emerald-300" style="background: linear-gradient(135deg, rgba(16,185,129,0.08), rgba(16,185,129,{{ zone.intensity|floatformat:0 }}%));">
+                        <p class="text-xs font-semibold uppercase tracking-[0.25em] text-emerald-700">Zona {{ zone.electoral_zone }}</p>
+                        <p class="mt-3 text-3xl font-semibold text-slate-950">{{ zone.total }}</p>
+                        <p class="mt-2 text-sm text-slate-600">Apoiadores concentrados nesta zona</p>
+                    </a>
+                {% empty %}
+                    <div class="rounded-3xl border border-dashed border-slate-200 p-6 text-sm text-slate-500">Cadastre ou valide eleitores para montar o mapa territorial.</div>
+                {% endfor %}
             </div>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div class="bg-white shadow-md sm:rounded-lg p-4">
-                <p class="text-sm text-gray-500">Total de pessoas cadastradas</p>
-                <p class="mt-1 text-2xl font-semibold text-gray-900">{{ total_people }}</p>
-            </div>
-            <div class="bg-white shadow-md sm:rounded-lg p-4">
-                <p class="text-sm text-gray-500">Total exibido no filtro atual</p>
-                <p class="mt-1 text-2xl font-semibold text-gray-900">{{ filtered_total }}</p>
-            </div>
-            <div class="bg-white shadow-md sm:rounded-lg p-4">
-                <p class="text-sm text-gray-500">Pessoas sem responsável</p>
-                <p class="mt-1 text-2xl font-semibold text-gray-900">{{ total_without_responsible }}</p>
-            </div>
-        </div>
-
-        <div class="bg-white shadow-md sm:rounded-lg p-4 sm:p-6">
-            <form method="get" class="grid grid-cols-1 md:grid-cols-4 gap-3 items-end">
-                <div class="md:col-span-3">
-                    <label for="responsavel" class="block mb-2 text-sm font-medium text-gray-900">Separar registros por responsável</label>
-                    <select id="responsavel" name="responsavel" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5">
-                        <option value="" {% if not responsible_filter %}selected{% endif %}>Todos os registros</option>
-                        <option value="none" {% if responsible_filter == 'none' %}selected{% endif %}>Sem responsável</option>
-                        {% for responsible in responsible_options %}
-                            <option value="{{ responsible.id }}" {% if responsible_filter == responsible.id|stringformat:'s' %}selected{% endif %}>
-                                {{ responsible.full_name }} ({{ responsible.total_records }})
-                            </option>
-                        {% endfor %}
-                    </select>
-                </div>
-                <button type="submit" class="inline-flex items-center justify-center text-white bg-primary-700 hover:bg-primary-800 focus:ring-4 focus:ring-primary-300 font-medium rounded-lg text-sm px-4 py-2.5 focus:outline-none">
-                    Aplicar filtro
-                </button>
-            </form>
-            <p class="mt-3 text-sm text-gray-500">Filtro atual: <span class="font-medium text-gray-900">{{ current_filter_label }}</span></p>
-        </div>
-
-        <div class="bg-white shadow-md sm:rounded-lg overflow-hidden">
-            <div class="overflow-x-auto">
-                <table class="w-full text-sm text-left text-gray-500">
-                    <thead class="text-xs text-gray-700 uppercase bg-gray-50">
-                        <tr>
-                            <th scope="col" class="px-4 py-3">Nome completo</th>
-                            <th scope="col" class="px-4 py-3">Telefone</th>
-                            <th scope="col" class="px-4 py-3">Local</th>
-                            <th scope="col" class="px-4 py-3">Responsável</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for person in people %}
-                        <tr class="border-b">
-                            <th scope="row" class="px-4 py-3 font-medium text-gray-900 whitespace-nowrap">{{ person.full_name }}</th>
-                            <td class="px-4 py-3">{{ person.phone|default:'-' }}</td>
-                            <td class="px-4 py-3">{{ person.local }}</td>
-                            <td class="px-4 py-3">
-                                {% if person.parent %}
-                                    {{ person.parent.full_name }}
-                                {% else %}
-                                    -
-                                {% endif %}
-                            </td>
-                        </tr>
-                        {% empty %}
-                        <tr class="border-b">
-                            <td colspan="4" class="px-4 py-8 text-center text-gray-500">Nenhum registro encontrado para o filtro selecionado.</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+        <div class="app-card border border-slate-200 bg-white/95 p-6">
+            <p class="text-xs font-semibold uppercase tracking-[0.35em] text-blue-700">Historico eleitoral</p>
+            <h3 class="mt-2 text-2xl font-semibold text-slate-950">Votacao passada por zona e secao</h3>
+            <div class="mt-6 space-y-4">
+                {% for history in history_cards %}
+                    <div class="rounded-3xl border border-slate-200 p-4">
+                        <div class="flex items-center justify-between gap-3">
+                            <div>
+                                <p class="text-sm font-semibold text-slate-950">{{ history.municipality }} · Zona {{ history.electoral_zone }} / Secao {{ history.electoral_section }}</p>
+                                <p class="text-xs uppercase tracking-[0.25em] text-slate-500">{{ history.election_year }}</p>
+                            </div>
+                            <p class="text-lg font-semibold text-slate-950">{{ history.votes_received }} votos</p>
+                        </div>
+                        <div class="mt-3 h-2 rounded-full bg-slate-100">
+                            <div class="h-2 rounded-full bg-blue-600" style="width: {{ history.intensity }}%;"></div>
+                        </div>
+                    </div>
+                {% empty %}
+                    <div class="rounded-3xl border border-dashed border-slate-200 p-6 text-sm text-slate-500">Nenhum historico eleitoral cadastrado ainda. Use o admin para alimentar as zonas e secoes com votacoes passadas.</div>
+                {% endfor %}
             </div>
         </div>
     </div>
+
+    <div class="grid gap-6 xl:grid-cols-2">
+        <div class="app-card border border-slate-200 bg-white/95 p-6">
+            <p class="text-xs font-semibold uppercase tracking-[0.35em] text-slate-600">Secoes prioritarias</p>
+            <div class="mt-5 space-y-4">
+                {% for section in section_cards %}
+                    <div>
+                        <div class="mb-2 flex items-center justify-between text-sm">
+                            <span class="font-medium text-slate-900">Zona {{ section.electoral_zone }} · Secao {{ section.electoral_section }}</span>
+                            <span class="text-slate-500">{{ section.total }} apoiadores</span>
+                        </div>
+                        <div class="h-3 rounded-full bg-slate-100">
+                            <div class="h-3 rounded-full bg-emerald-500" style="width: {{ section.intensity }}%;"></div>
+                        </div>
+                    </div>
+                {% empty %}
+                    <p class="text-sm text-slate-500">Sem secoes suficientes para destacar prioridades.</p>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="app-card border border-slate-200 bg-white/95 p-6">
+            <p class="text-xs font-semibold uppercase tracking-[0.35em] text-slate-600">Municipios de votacao</p>
+            <div class="mt-5 space-y-4">
+                {% for city in city_cards %}
+                    <div>
+                        <div class="mb-2 flex items-center justify-between text-sm">
+                            <span class="font-medium text-slate-900">{{ city.voting_city }}</span>
+                            <span class="text-slate-500">{{ city.total }} registros</span>
+                        </div>
+                        <div class="h-3 rounded-full bg-slate-100">
+                            <div class="h-3 rounded-full bg-slate-900" style="width: {{ city.intensity }}%;"></div>
+                        </div>
+                    </div>
+                {% empty %}
+                    <p class="text-sm text-slate-500">Nenhum municipio de votacao preenchido ainda.</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <div class="app-card overflow-hidden border border-slate-200 bg-white/95">
+        <div class="border-b border-slate-100 px-6 py-4">
+            <h3 class="text-lg font-semibold text-slate-950">Base detalhada para leitura tatico-operacional</h3>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="min-w-full text-left text-sm">
+                <thead class="bg-slate-50 text-xs uppercase tracking-[0.18em] text-slate-500">
+                    <tr>
+                        <th class="px-5 py-4">Nome</th>
+                        <th class="px-5 py-4">Cidade / Local</th>
+                        <th class="px-5 py-4">Zona / Secao</th>
+                        <th class="px-5 py-4">Status</th>
+                        <th class="px-5 py-4">Responsavel</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                    {% for person in people %}
+                        <tr>
+                            <td class="px-5 py-4">
+                                <p class="font-semibold text-slate-950">{{ person.full_name }}</p>
+                                <p class="mt-1 text-xs text-slate-500">CPF {{ person.cpf }}</p>
+                            </td>
+                            <td class="px-5 py-4 text-slate-600">
+                                <p>{{ person.voting_city|default:"Municipio pendente" }}</p>
+                                <p class="mt-1 text-xs text-slate-500">{{ person.local }}</p>
+                            </td>
+                            <td class="px-5 py-4 text-slate-600">Zona {{ person.electoral_zone|default:"-" }} · Secao {{ person.electoral_section|default:"-" }}</td>
+                            <td class="px-5 py-4">
+                                <span class="inline-flex rounded-full px-3 py-1 text-xs font-semibold {% if person.voter_status == 'apto' %}bg-emerald-100 text-emerald-800{% elif person.voter_status == 'not_apto' %}bg-rose-100 text-rose-700{% else %}bg-amber-100 text-amber-800{% endif %}">
+                                    {{ person.get_voter_status_display }}
+                                </span>
+                            </td>
+                            <td class="px-5 py-4 text-slate-600">{{ person.parent.full_name|default:"-" }}</td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="5" class="px-5 py-10 text-center text-sm text-slate-500">Nenhum registro encontrado para os filtros atuais.</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
 </section>
-</body>
-</html>
+{% endblock %}

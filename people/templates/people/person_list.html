@@ -1,127 +1,174 @@
-{% load static %}
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lista de Pessoas</title>
-    <link rel="stylesheet" href="{% static 'css/output.css' %}">
-</head>
-<body>
-<section class="bg-gray-50 p-3 sm:p-5 antialiased min-h-screen">
-    <div class="mx-auto max-w-screen-xl px-4 lg:px-12">
-        <div class="bg-white relative shadow-md sm:rounded-lg overflow-hidden">
-            <div class="flex flex-col md:flex-row items-center justify-between space-y-3 md:space-y-0 md:space-x-4 p-4">
-                <div>
-                    <h1 class="text-xl font-semibold text-gray-900">Pessoas cadastradas</h1>
-                    <p class="text-sm text-gray-500">Gerencie os registros da campanha</p>
-                </div>
+{% extends "people/base.html" %}
 
-                <div class="w-full md:w-auto flex flex-col md:flex-row space-y-2 md:space-y-0 items-stretch md:items-center justify-end md:space-x-3 flex-shrink-0">
-                    <a href="{% url 'person_report' %}" class="flex items-center justify-center text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-lg px-4 py-2 hover:bg-gray-100 hover:text-primary-700 focus:ring-4 focus:ring-gray-200 focus:outline-none">
-                        Ver relatório
-                    </a>
+{% block title %}Base de Apoiadores{% endblock %}
+{% block page_title %}Base de Apoiadores{% endblock %}
+{% block page_subtitle %}Consulte cadastros, status eleitoral, zonas e autoria da coleta em uma tela pronta para operacao de campo.{% endblock %}
 
-                    <a href="{% url 'person_create' %}" class="flex items-center justify-center text-white bg-primary-700 hover:bg-primary-800 focus:ring-4 focus:ring-primary-300 font-medium rounded-lg text-sm px-4 py-2 focus:outline-none">
-                        <svg class="h-3.5 w-3.5 mr-2" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
-                            <path clip-rule="evenodd" fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"/>
-                        </svg>
-                        Adicionar pessoa
-                    </a>
-
-                    <button id="filterDropdownButton" data-dropdown-toggle="filterDropdown" class="w-full md:w-auto flex items-center justify-center py-2 px-4 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-primary-700 focus:z-10 focus:ring-4 focus:ring-gray-200" type="button">
-                        <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" class="h-4 w-4 mr-2 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
-                            <path fill-rule="evenodd" d="M3 3a1 1 0 011-1h12a1 1 0 011 1v3a1 1 0 01-.293.707L12 11.414V15a1 1 0 01-.293.707l-2 2A1 1 0 018 17v-5.586L3.293 6.707A1 1 0 013 6V3z" clip-rule="evenodd"/>
-                        </svg>
-                        Filtro
-                        <svg class="-mr-1 ml-1.5 w-5 h-5" fill="currentColor" viewBox="0 0 20 20" aria-hidden="true">
-                            <path clip-rule="evenodd" fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"/>
-                        </svg>
-                    </button>
-
-                    <div id="filterDropdown" class="z-10 hidden w-56 p-3 bg-white rounded-lg shadow">
-                        <h6 class="mb-3 text-sm font-medium text-gray-900">Filtros</h6>
-                        <p class="text-sm text-gray-500">Os filtros serão implementados depois.</p>
-                    </div>
-                </div>
+{% block content %}
+<section class="space-y-6">
+    <div class="app-card border border-slate-200 bg-white/95 p-6">
+        <div class="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+                <h2 class="text-lg font-semibold text-slate-950">Filtros da base</h2>
+                <p class="text-sm text-slate-500">Use busca e filtros para encontrar apoiadores com mais rapidez.</p>
             </div>
+            <a href="{% url 'person_create' %}" class="inline-flex items-center justify-center rounded-full bg-blue-700 px-5 py-3 text-sm font-semibold text-white hover:bg-blue-800">Novo cadastro</a>
+        </div>
 
-            <div class="overflow-x-auto">
-                <table class="w-full text-sm text-left text-gray-500">
-                    <thead class="text-xs text-gray-700 uppercase bg-gray-50">
-                        <tr>
-                            <th scope="col" class="px-4 py-4">Nome completo</th>
-                            <th scope="col" class="px-4 py-3">Telefone</th>
-                            <th scope="col" class="px-4 py-3">Local</th>
-                            <th scope="col" class="px-4 py-3">Responsável</th>
-                            <th scope="col" class="px-4 py-3">
-                                <span class="sr-only">Ações</span>
-                            </th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for person in people %}
-                        <tr class="border-b">
-                            <th scope="row" class="px-4 py-3 font-medium text-gray-900 whitespace-nowrap">
-                                {{ person.full_name }}
-                            </th>
-                            <td class="px-4 py-3">{{ person.phone|default:"-" }}</td>
-                            <td class="px-4 py-3">{{ person.local }}</td>
-                            <td class="px-4 py-3">
-                                {% if person.parent %}
-                                    {{ person.parent.full_name }}
-                                {% else %}
-                                    -
-                                {% endif %}
+        <form method="get" class="grid gap-4 md:grid-cols-2 xl:grid-cols-[1.4fr_0.7fr_0.7fr_auto]">
+            <div>
+                <label for="q" class="mb-2 block text-sm font-medium text-slate-700">Busca rapida</label>
+                <input type="text" id="q" name="q" value="{{ filter_data.q }}" placeholder="Nome, CPF, telefone, local ou cidade" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100">
+            </div>
+            <div>
+                <label for="status" class="mb-2 block text-sm font-medium text-slate-700">Status eleitoral</label>
+                <select id="status" name="status" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100">
+                    <option value="">Todos</option>
+                    {% for value, label in status_options %}
+                        <option value="{{ value }}" {% if filter_data.status == value %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label for="zona" class="mb-2 block text-sm font-medium text-slate-700">Zona eleitoral</label>
+                <select id="zona" name="zona" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100">
+                    <option value="">Todas</option>
+                    {% for zone in zone_options %}
+                        <option value="{{ zone }}" {% if filter_data.zona == zone %}selected{% endif %}>Zona {{ zone }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="flex items-end gap-3">
+                <button type="submit" class="rounded-full bg-slate-950 px-5 py-3 text-sm font-semibold text-white hover:bg-slate-800">Filtrar</button>
+                <a href="{% url 'person_list' %}" class="rounded-full border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-700">Limpar</a>
+            </div>
+        </form>
+    </div>
+
+    <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        <div class="rounded-3xl bg-slate-950 px-5 py-4 text-white shadow-sm">
+            <p class="text-sm text-slate-300">Registros exibidos</p>
+            <p class="mt-2 text-3xl font-semibold">{{ people|length }}</p>
+        </div>
+        <div class="rounded-3xl border border-slate-200 bg-white px-5 py-4 shadow-sm">
+            <p class="text-sm text-slate-500">Filtro de responsavel</p>
+            <p class="mt-2 text-xl font-semibold text-slate-950">{{ filter_data.current_filter_label }}</p>
+        </div>
+        <div class="rounded-3xl bg-blue-700 px-5 py-4 text-white shadow-sm">
+            <p class="text-sm text-emerald-100">Visualizacao</p>
+            <p class="mt-2 text-xl font-semibold">{% if profile.access_level == 'manager' %}Somente sua base{% else %}Base completa{% endif %}</p>
+        </div>
+        <div class="rounded-3xl border border-slate-200 bg-slate-50 px-5 py-4 shadow-sm">
+            <p class="text-sm text-slate-500">Acao rapida</p>
+            <a href="{% url 'person_create' %}" class="mt-2 inline-flex text-sm font-semibold text-blue-700">Cadastrar novo apoiador</a>
+        </div>
+    </div>
+
+    <div class="app-card overflow-hidden border border-slate-200 bg-white/95">
+        <div class="border-b border-slate-100 px-5 py-4">
+            <h2 class="text-lg font-semibold text-slate-950">Pessoas cadastradas</h2>
+            <p class="text-sm text-slate-500">Lista responsiva com foco em leitura rapida e acoes diretas.</p>
+        </div>
+
+        <div class="hidden overflow-x-auto lg:block">
+            <table class="min-w-full text-left text-sm">
+                <thead class="bg-slate-50 text-xs uppercase tracking-[0.18em] text-slate-500">
+                    <tr>
+                        <th class="px-5 py-4">Apoiador</th>
+                        <th class="px-5 py-4">Contato</th>
+                        <th class="px-5 py-4">Territorio</th>
+                        <th class="px-5 py-4">Eleitoral</th>
+                        <th class="px-5 py-4">Equipe</th>
+                        <th class="px-5 py-4">Acoes</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100">
+                    {% for person in people %}
+                        <tr class="align-top">
+                            <td class="px-5 py-4">
+                                <p class="font-semibold text-slate-950">{{ person.full_name }}</p>
+                                <p class="mt-1 text-xs uppercase tracking-[0.2em] text-slate-500">CPF {{ person.cpf }}</p>
                             </td>
-                            <td class="px-4 py-3 flex items-center justify-end">
-                                <button id="person-{{ person.id }}-dropdown-button" data-dropdown-toggle="person-{{ person.id }}-dropdown" class="inline-flex items-center text-sm font-medium hover:bg-gray-100 p-1.5 text-center text-gray-500 hover:text-gray-800 rounded-lg focus:outline-none" type="button">
-                                    <svg class="w-5 h-5" aria-hidden="true" fill="currentColor" viewBox="0 0 20 20">
-                                        <path d="M6 10a2 2 0 11-4 0 2 2 0 014 0zM12 10a2 2 0 11-4 0 2 2 0 014 0zM16 12a2 2 0 100-4 2 2 0 000 4z"/>
-                                    </svg>
-                                </button>
-                                <div id="person-{{ person.id }}-dropdown" class="hidden z-10 w-44 bg-white rounded divide-y divide-gray-100 shadow">
-                                    <ul class="py-1 text-sm" aria-labelledby="person-{{ person.id }}-dropdown-button">
-                                        <li>
-                                            <a href="{% url 'person_update' person.id %}" class="flex w-full items-center py-2 px-4 hover:bg-gray-100 text-gray-700">
-                                                <svg class="w-4 h-4 mr-2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                                                    <path d="M17.414 2.586a2 2 0 00-2.828 0L7 10.172V13h2.828l7.586-7.586a2 2 0 000-2.828z"/>
-                                                    <path fill-rule="evenodd" clip-rule="evenodd" d="M2 6a2 2 0 012-2h4a1 1 0 010 2H4v10h10v-4a1 1 0 112 0v4a2 2 0 01-2 2H4a2 2 0 01-2-2V6z"/>
-                                                </svg>
-                                                Editar
-                                            </a>
-                                        </li>
-                                        <li>
-                                            <a href="{% url 'person_delete' person.id %}" class="flex w-full items-center py-2 px-4 hover:bg-gray-100 text-red-500">
-                                                <svg class="w-4 h-4 mr-2" viewBox="0 0 14 15" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                                                    <path fill-rule="evenodd" clip-rule="evenodd" fill="currentColor" d="M6.09922 0.300781C5.93212 0.30087 5.76835 0.347476 5.62625 0.435378C5.48414 0.523281 5.36931 0.649009 5.29462 0.798481L4.64302 2.10078H1.59922C1.36052 2.10078 1.13161 2.1956 0.962823 2.36439C0.79404 2.53317 0.699219 2.76209 0.699219 3.00078C0.699219 3.23948 0.79404 3.46839 0.962823 3.63718C1.13161 3.80596 1.36052 3.90078 1.59922 3.90078V12.9008C1.59922 13.3782 1.78886 13.836 2.12643 14.1736C2.46399 14.5111 2.92183 14.7008 3.39922 14.7008H10.5992C11.0766 14.7008 11.5344 14.5111 11.872 14.1736C12.2096 13.836 12.3992 13.3782 12.3992 12.9008V3.90078C12.6379 3.90078 12.8668 3.80596 13.0356 3.63718C13.2044 3.46839 13.2992 3.23948 13.2992 3.00078C13.2992 2.76209 13.2044 2.53317 13.0356 2.36439C12.8668 2.1956 12.6379 2.10078 12.3992 2.10078H9.35542L8.70382 0.798481C8.62913 0.649009 8.5143 0.523281 8.37219 0.435378C8.23009 0.347476 8.06631 0.30087 7.89922 0.300781H6.09922Z"/>
-                                                </svg>
-                                                Excluir
-                                            </a>
-                                        </li>
-                                    </ul>
+                            <td class="px-5 py-4 text-slate-600">
+                                <p>{{ person.phone|default:"-" }}</p>
+                                <p class="mt-1 text-xs text-slate-500">Consentimento: {% if person.data_consent %}Sim{% else %}Nao{% endif %}</p>
+                            </td>
+                            <td class="px-5 py-4 text-slate-600">
+                                <p>{{ person.local }}</p>
+                                <p class="mt-1 text-xs text-slate-500">{{ person.voting_city|default:"Municipio pendente" }}</p>
+                            </td>
+                            <td class="px-5 py-4">
+                                <span class="inline-flex rounded-full px-3 py-1 text-xs font-semibold {% if person.voter_status == 'apto' %}bg-emerald-100 text-emerald-800{% elif person.voter_status == 'not_apto' %}bg-rose-100 text-rose-700{% else %}bg-amber-100 text-amber-800{% endif %}">
+                                    {{ person.get_voter_status_display }}
+                                </span>
+                                <p class="mt-2 text-xs text-slate-500">Zona {{ person.electoral_zone|default:"-" }} · Secao {{ person.electoral_section|default:"-" }}</p>
+                                <p class="mt-1 text-xs text-slate-400">Fonte: {{ person.get_validation_source_display }}</p>
+                            </td>
+                            <td class="px-5 py-4 text-slate-600">
+                                <p>Responsavel: {{ person.parent.full_name|default:"-" }}</p>
+                                <p class="mt-1 text-xs text-slate-500">Cadastrado por: {{ person.created_by.username|default:"-" }}</p>
+                            </td>
+                            <td class="px-5 py-4">
+                                <div class="flex flex-col gap-2 sm:flex-row">
+                                    <a href="{% url 'person_update' person.id %}" class="rounded-full border border-slate-200 px-4 py-2 text-center text-xs font-semibold text-slate-700 transition hover:border-blue-200 hover:text-blue-700">Editar</a>
+                                    <a href="{% url 'person_delete' person.id %}" class="rounded-full border border-rose-200 px-4 py-2 text-center text-xs font-semibold text-rose-700 transition hover:bg-rose-50">Excluir</a>
                                 </div>
                             </td>
                         </tr>
-                        {% empty %}
-                        <tr class="border-b">
-                            <td colspan="5" class="px-4 py-8 text-center text-gray-500">
-                                Nenhuma pessoa cadastrada ainda.
-                            </td>
+                    {% empty %}
+                        <tr>
+                            <td colspan="6" class="px-5 py-10 text-center text-sm text-slate-500">Nenhum apoiador encontrado para os filtros atuais.</td>
                         </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
 
-            <nav class="flex flex-col md:flex-row justify-between items-start md:items-center space-y-3 md:space-y-0 p-4" aria-label="Table navigation">
-                <span class="text-sm font-normal text-gray-500">
-                    Total de registros:
-                    <span class="font-semibold text-gray-900">{{ people|length }}</span>
-                </span>
-            </nav>
+        <div class="space-y-4 p-4 lg:hidden">
+            {% for person in people %}
+                <article class="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+                    <div class="flex items-start justify-between gap-3">
+                        <div>
+                            <h3 class="text-base font-semibold text-slate-950">{{ person.full_name }}</h3>
+                            <p class="mt-1 text-xs uppercase tracking-[0.18em] text-slate-500">CPF {{ person.cpf }}</p>
+                        </div>
+                        <span class="inline-flex rounded-full px-3 py-1 text-xs font-semibold {% if person.voter_status == 'apto' %}bg-emerald-100 text-emerald-800{% elif person.voter_status == 'not_apto' %}bg-rose-100 text-rose-700{% else %}bg-amber-100 text-amber-800{% endif %}">
+                            {{ person.get_voter_status_display }}
+                        </span>
+                    </div>
+
+                    <dl class="mt-4 space-y-3 text-sm text-slate-600">
+                        <div>
+                            <dt class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Contato</dt>
+                            <dd class="mt-1">{{ person.phone|default:"-" }}</dd>
+                        </div>
+                        <div>
+                            <dt class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Territorio</dt>
+                            <dd class="mt-1">{{ person.local }}</dd>
+                            <dd class="text-xs text-slate-500">{{ person.voting_city|default:"Municipio pendente" }}</dd>
+                        </div>
+                        <div>
+                            <dt class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Eleitoral</dt>
+                            <dd class="mt-1">Zona {{ person.electoral_zone|default:"-" }} · Secao {{ person.electoral_section|default:"-" }}</dd>
+                        </div>
+                        <div>
+                            <dt class="text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Equipe</dt>
+                            <dd class="mt-1">Responsavel: {{ person.parent.full_name|default:"-" }}</dd>
+                            <dd class="text-xs text-slate-500">Cadastrado por: {{ person.created_by.username|default:"-" }}</dd>
+                        </div>
+                    </dl>
+
+                    <div class="mt-4 grid grid-cols-2 gap-2">
+                        <a href="{% url 'person_update' person.id %}" class="inline-flex items-center justify-center rounded-full border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:border-blue-200 hover:text-blue-700">Editar</a>
+                        <a href="{% url 'person_delete' person.id %}" class="inline-flex items-center justify-center rounded-full border border-rose-200 px-4 py-2 text-sm font-semibold text-rose-700 transition hover:bg-rose-50">Excluir</a>
+                    </div>
+                </article>
+            {% empty %}
+                <div class="rounded-2xl border border-dashed border-slate-200 bg-white p-6 text-center text-sm text-slate-500">
+                    Nenhum apoiador encontrado para os filtros atuais.
+                </div>
+            {% endfor %}
         </div>
     </div>
 </section>
-</body>
-</html>
+{% endblock %}
