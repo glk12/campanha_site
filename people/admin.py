@@ -15,10 +15,12 @@ class PersonAdmin(admin.ModelAdmin):
         "voter_status",
         "electoral_zone",
         "electoral_section",
+        "latitude",
+        "longitude",
         "parent",
         "created_by",
     )
-    search_fields = ("full_name", "cpf", "phone", "local", "voting_city")
+    search_fields = ("full_name", "cpf", "phone", "local", "address", "voting_city")
     list_filter = ("voter_status", "validation_source", "local", "voting_city")
 
 

@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
+import os
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -25,7 +26,21 @@ SECRET_KEY = "django-insecure-1aq*$c*7$7h&c(=2jg!#5n=z$=r5^6jh96n$ul#lon_4ef=_k-
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+# Hosts e origens CSRF vem de variavel de ambiente (nada de maquina
+# fica hardcoded/versionado). Padrao seguro = somente local.
+# Ex.: DJANGO_ALLOWED_HOSTS="seu-host.example,localhost"
+#      DJANGO_CSRF_TRUSTED_ORIGINS="http://seu-host.example:8000"
+ALLOWED_HOSTS = [
+    h.strip()
+    for h in os.environ.get("DJANGO_ALLOWED_HOSTS", "localhost,127.0.0.1").split(",")
+    if h.strip()
+]
+
+CSRF_TRUSTED_ORIGINS = [
+    o.strip()
+    for o in os.environ.get("DJANGO_CSRF_TRUSTED_ORIGINS", "").split(",")
+    if o.strip()
+]
 
 
 # Application definition
@@ -120,6 +135,11 @@ STATICFILES_DIRS = [BASE_DIR / "static"]
 LOGIN_URL = "login"
 LOGIN_REDIRECT_URL = "index"
 LOGOUT_REDIRECT_URL = "login"
+
+# Campaign settings
+# Municipio-alvo da campanha. Define qual GeoJSON de zonas eleitorais
+# o modulo de mapa territorial usa (static/geo/zonas_<municipio>.geojson).
+CAMPAIGN_MUNICIPALITY = "Recife"
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field

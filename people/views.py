@@ -1,10 +1,57 @@
+import unicodedata
+from datetime import timedelta
+
+from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
 from django.db.models import Count, Q, Sum
 from django.shortcuts import get_object_or_404, redirect, render
+from django.templatetags.static import static
+from django.utils import timezone
 
 from .forms import PersonForm
 from .models import ElectionHistory, Person, UserProfile
+
+
+def normalize_zone(value):
+    """Normaliza um numero de zona para casar GeoJSON com Person.
+
+    "007" e "7" passam a ser a mesma chave; vazio vira "".
+    """
+    text = str(value or "").strip()
+    return text.lstrip("0") or ("0" if text else "")
+
+
+def municipality_slug(name):
+    text = unicodedata.normalize("NFKD", str(name or ""))
+    text = text.encode("ascii", "ignore").decode("ascii").lower()
+    return "".join(char if char.isalnum() else "_" for char in text).strip("_")
+
+
+def _build_map_points(queryset):
+    points = []
+    for person in queryset.exclude(latitude__isnull=True).exclude(
+        longitude__isnull=True
+    ):
+        points.append(
+            {
+                "name": person.full_name,
+                "lat": float(person.latitude),
+                "lng": float(person.longitude),
+                "zone": person.electoral_zone,
+                "section": person.electoral_section,
+                "status": person.get_voter_status_display(),
+            }
+        )
+    return points
+
+
+def _zone_intensity_map(zone_cards):
+    return {
+        normalize_zone(zone["electoral_zone"]): zone["intensity"]
+        for zone in zone_cards
+        if zone["electoral_zone"]
+    }
 
 
 def get_user_profile(user):
@@ -120,12 +167,16 @@ def apply_people_filters(queryset, request):
 
 
 def build_dashboard_context(base_people, filtered_people, profile):
+    week_ago = timezone.now() - timedelta(days=7)
     people_with_data = base_people.exclude(
         Q(electoral_zone="") | Q(electoral_section="") | Q(voting_city="")
     )
     zones = list(
         people_with_data.values("electoral_zone")
-        .annotate(total=Count("id"))
+        .annotate(
+            total=Count("id"),
+            growth_week=Count("id", filter=Q(created_at__gte=week_ago)),
+        )
         .order_by("-total", "electoral_zone")
     )
     sections = list(
@@ -171,6 +222,7 @@ def build_dashboard_context(base_people, filtered_people, profile):
             voter_status=Person.VoterStatus.PENDING
         ).count(),
         "summary_without_responsible": base_people.filter(parent__isnull=True).count(),
+        "summary_growth_week": base_people.filter(created_at__gte=week_ago).count(),
         "summary_with_consent": base_people.filter(data_consent=True).count(),
         "summary_validated": base_people.exclude(
             validation_source=Person.ValidationSource.PENDING
@@ -321,3 +373,48 @@ def person_delete(request, pk):
     context = get_common_context(profile)
     context.update({"person": person})
     return render(request, "people/person_confirm_delete.html", context)
+
+
+@login_required
+def dashboard_territorial(request):
+    profile = require_report_access(request.user)
+    base_people = get_visible_people_queryset(request.user).select_related("parent")
+    filtered_people, filter_data = apply_people_filters(base_people, request)
+
+    context = get_common_context(profile)
+    context.update(build_dashboard_context(base_people, filtered_people, profile))
+
+    municipality = getattr(settings, "CAMPAIGN_MUNICIPALITY", "Recife")
+    geojson_path = f"geo/municipio_{municipality_slug(municipality)}.geojson"
+
+    context.update(
+        {
+            "municipality": municipality,
+            "geojson_url": static(geojson_path),
+            "map_points": _build_map_points(filtered_people),
+            "zone_intensity": _zone_intensity_map(context["zone_cards"]),
+            "filter_data": filter_data,
+            "status_options": Person.VoterStatus.choices,
+            "zone_options": (
+                base_people.exclude(electoral_zone="")
+                .values_list("electoral_zone", flat=True)
+                .distinct()
+                .order_by("electoral_zone")
+            ),
+        }
+    )
+
+    # Drill-down: zona selecionada -> secoes daquela zona (escopo do usuario)
+    selected_zone = filter_data["zona"]
+    zone_sections = []
+    if selected_zone:
+        zone_sections = list(
+            base_people.filter(electoral_zone=selected_zone)
+            .exclude(electoral_section="")
+            .values("electoral_section")
+            .annotate(total=Count("id"))
+            .order_by("-total", "electoral_section")
+        )
+    context["selected_zone"] = selected_zone
+    context["zone_sections"] = zone_sections
+    return render(request, "people/dashboard_territorial.html", context)

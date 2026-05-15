@@ -3,6 +3,7 @@ from django.test import TestCase
 from django.urls import reverse
 
 from .models import ElectionHistory, Person, UserProfile
+from .views import normalize_zone
 
 
 class BasePeopleTestCase(TestCase):
@@ -333,3 +334,100 @@ class AccessControlTests(BasePeopleTestCase):
         response = self.client.get(reverse("person_list"))
         self.assertEqual(response.status_code, 302)
         self.assertIn(reverse("login"), response.url)
+
+    def test_territorial_map_scoped_for_manager(self):
+        manager_user, _ = self.create_user_with_profile(
+            "gerente",
+            UserProfile.AccessLevel.MANAGER,
+            person=self.root_manager,
+        )
+        self.client.force_login(manager_user)
+
+        response = self.client.get(reverse("dashboard_territorial"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.context["summary_total"], 3)
+        self.assertNotContains(response, "Pessoa de Outra Base")
+
+    def test_territorial_map_forbidden_for_agent(self):
+        agent_user, _ = self.create_user_with_profile(
+            "agente",
+            UserProfile.AccessLevel.AGENT,
+        )
+        self.client.force_login(agent_user)
+
+        response = self.client.get(reverse("dashboard_territorial"))
+
+        self.assertEqual(response.status_code, 403)
+
+
+class TerritorialMapTests(BasePeopleTestCase):
+    def setUp(self):
+        super().setUp()
+        self.admin_user, _ = self.create_user_with_profile(
+            "admin", UserProfile.AccessLevel.ADMIN, is_staff=True
+        )
+        self.client.force_login(self.admin_user)
+
+    def test_map_renders_for_admin(self):
+        response = self.client.get(reverse("dashboard_territorial"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Inteligencia territorial")
+        self.assertIn("map_points", response.context)
+        self.assertIn("zone_intensity", response.context)
+
+    def test_map_points_only_include_geolocated(self):
+        self.visible_person.latitude = -8.05
+        self.visible_person.longitude = -34.88
+        self.visible_person.save()
+
+        response = self.client.get(reverse("dashboard_territorial"))
+        points = response.context["map_points"]
+
+        names = {point["name"] for point in points}
+        self.assertIn("Pessoa da Base", names)
+        # registros sem coordenadas nao entram no mapa
+        self.assertNotIn("Gerente Externo", names)
+
+    def test_zone_intensity_keys_are_normalized(self):
+        response = self.client.get(reverse("dashboard_territorial"))
+        intensity = response.context["zone_intensity"]
+
+        # zonas dos fixtures: 101, 102, 110, 111 -> sem zeros a esquerda
+        self.assertTrue(intensity)
+        for key in intensity:
+            self.assertEqual(key, key.lstrip("0") or "0")
+
+    def test_normalize_zone_helper(self):
+        self.assertEqual(normalize_zone("007"), "7")
+        self.assertEqual(normalize_zone("101"), "101")
+        self.assertEqual(normalize_zone("000"), "0")
+        self.assertEqual(normalize_zone(""), "")
+        self.assertEqual(normalize_zone(None), "")
+
+    def test_growth_week_metric(self):
+        response = self.client.get(reverse("dashboard_territorial"))
+
+        # fixtures criados agora -> contam como crescimento da semana
+        self.assertEqual(response.context["summary_growth_week"], 5)
+        zones = response.context["zone_cards"]
+        self.assertTrue(zones)
+        for zone in zones:
+            self.assertIn("growth_week", zone)
+
+    def test_drilldown_lists_sections_of_selected_zone(self):
+        response = self.client.get(reverse("dashboard_territorial"), {"zona": "101"})
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.context["selected_zone"], "101")
+        sections = {s["electoral_section"] for s in response.context["zone_sections"]}
+        # zona 101: root_manager (secao 201) + intermediate (secao 202)
+        self.assertEqual(sections, {"201", "202"})
+        self.assertContains(response, "Secoes da zona 101")
+
+    def test_drilldown_absent_without_zone_filter(self):
+        response = self.client.get(reverse("dashboard_territorial"))
+
+        self.assertEqual(response.context["selected_zone"], "")
+        self.assertEqual(response.context["zone_sections"], [])

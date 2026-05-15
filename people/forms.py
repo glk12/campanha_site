@@ -39,6 +39,9 @@ class PersonForm(forms.ModelForm):
             "cpf",
             "phone",
             "local",
+            "address",
+            "latitude",
+            "longitude",
             "voting_city",
             "electoral_zone",
             "electoral_section",
@@ -58,6 +61,23 @@ class PersonForm(forms.ModelForm):
             ),
             "local": forms.TextInput(
                 attrs={"class": INPUT_CLASS, "placeholder": "Bairro, comunidade ou local"}
+            ),
+            "address": forms.TextInput(
+                attrs={"class": INPUT_CLASS, "placeholder": "Endereco completo (opcional)"}
+            ),
+            "latitude": forms.NumberInput(
+                attrs={
+                    "class": INPUT_CLASS,
+                    "step": "any",
+                    "placeholder": "Latitude (opcional, ex: -8.047562)",
+                }
+            ),
+            "longitude": forms.NumberInput(
+                attrs={
+                    "class": INPUT_CLASS,
+                    "step": "any",
+                    "placeholder": "Longitude (opcional, ex: -34.876964)",
+                }
             ),
             "voting_city": forms.TextInput(
                 attrs={"class": INPUT_CLASS, "placeholder": "Municipio de votacao"}

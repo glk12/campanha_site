@@ -7,3 +7,6 @@ __pycache__/
 *.sqlite3
 
 db.sqlite3
+
+# prints de teste (artefatos locais, nao versionar)
+screenshots/

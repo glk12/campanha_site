@@ -58,19 +58,24 @@
                 </div>
 
                 <nav class="flex flex-wrap gap-2">
-                    <a href="{% url 'index' %}" class="rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:border-blue-200 hover:text-blue-700">Inicio</a>
+                    {% with cur=request.resolver_match.url_name %}
+                    {% with base="rounded-full border px-4 py-2 text-sm font-medium shadow-sm transition" idle="border-slate-200 bg-white text-slate-700 hover:border-blue-200 hover:text-blue-700" active="border-blue-700 bg-blue-700 text-white hover:bg-blue-800" %}
+                    <a href="{% url 'index' %}" class="{{ base }} {% if cur == 'index' %}{{ active }}{% else %}{{ idle }}{% endif %}">Inicio</a>
                     {% if can_create_people %}
-                        <a href="{% url 'person_create' %}" class="rounded-full border border-blue-700 bg-blue-700 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-blue-800">Cadastrar</a>
+                        <a href="{% url 'person_create' %}" class="{{ base }} {% if cur == 'person_create' %}{{ active }}{% else %}{{ idle }}{% endif %}">Cadastrar</a>
                     {% endif %}
                     {% if can_manage_people %}
-                        <a href="{% url 'person_list' %}" class="rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:border-blue-200 hover:text-blue-700">Base</a>
+                        <a href="{% url 'person_list' %}" class="{{ base }} {% if cur == 'person_list' or cur == 'person_update' or cur == 'person_delete' %}{{ active }}{% else %}{{ idle }}{% endif %}">Base</a>
                     {% endif %}
                     {% if can_view_reports %}
-                        <a href="{% url 'person_report' %}" class="rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:border-blue-200 hover:text-blue-700">Relatorio</a>
+                        <a href="{% url 'person_report' %}" class="{{ base }} {% if cur == 'person_report' %}{{ active }}{% else %}{{ idle }}{% endif %}">Relatorio</a>
+                        <a href="{% url 'dashboard_territorial' %}" class="{{ base }} {% if cur == 'dashboard_territorial' %}{{ active }}{% else %}{{ idle }}{% endif %}">Mapa</a>
                     {% endif %}
                     {% if request.user.is_staff %}
-                        <a href="/admin/" class="rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:border-blue-200 hover:text-blue-700">Admin</a>
+                        <a href="/admin/" class="{{ base }} {{ idle }}">Admin</a>
                     {% endif %}
+                    {% endwith %}
+                    {% endwith %}
                     <form method="post" action="{% url 'logout' %}">
                         {% csrf_token %}
                         <button type="submit" class="rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:border-rose-200 hover:text-rose-700">Sair</button>
